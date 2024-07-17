@@ -1,28 +1,39 @@
+---
+marp: true
+---
 <!--
 theme: gaia
-class:
- - invert
-headingDivider: 2 
 paginate: true
+header: '**DevSecOps and Cloud security automation**'
+footer: 'A.SAAD'
 -->
 
-<!--
-_class:
- - lead
- - invert
--->
 
-## Slide One
+<!-- _class: lead -->
+# DevSecOps and Cloud Security
 
-* Apple
-* Banana
-* Carrot
+### Security DevOps Practices
+---
+![bg left:25%](./img/me.jpeg)
+
+### Application Security Analyst and DevSecOps expert
+- Web and mobile Developer
+- +20 Application Security Evaluation
+- SANS 540 DevSecOps and Cloud Security automation
+- Cloud Native Application security advocate
+- CTF Player/ Organizer
 
 ---
 
-## Slide Two
+## What you will learn
+"The Cloud Moves Fast. Automate to Keep Up"
 
-- Dog
-- Cat
-- Frog
+---
+## Agenda
 
+---
+<!-- _class: lead -->
+# Day 1 : 
+## Attacking and Hardening the DevOps Toolchain
+
+---
