@@ -1,0 +1,8 @@
+{"rule":"EN_UNPAIRED_BRACKETS","sentence":"^\\QDevOps culture conflicts with traditional security culture:\nTop-down risk management instead of team-based decision making\nNeed to know restrictions versus extended information sharing\nZero failure versus fail fast and fail forward\nLimiting change: Security is always ready to say \"No!\"\\E$"}
+{"rule":"ENGLISH_WORD_REPEAT_RULE","sentence":"^\\QSecurity culture vs DevOps\nDevOps culture conflicts with traditional security culture:\nTop-down risk management instead of team-based decision-making\nNeed to know restrictions versus extended information sharing\nZero failure versus fail fast and fail forward\nLimiting change: Security is always ready to say \"No!\"\\E$"}
+{"rule":"PHRASE_REPETITION","sentence":"^\\QDay 1 :Attacking and Hardening the DevOps Toolchain\nDevOps toolchain\\E$"}
+{"rule":"HE_VERB_AGR","sentence":"^\\QVersion control\nThe DevOps toolchain starts with pushing code to a version control system.\\E$"}
+{"rule":"ENGLISH_WORD_REPEAT_BEGINNING_RULE","sentence":"^\\QAre you adding or significantly upgrading a framework or important library or language or runtime component?\\E$"}
+{"rule":"ENGLISH_WORD_REPEAT_BEGINNING_RULE","sentence":"^\\QAre you changing security controls: authentication or session management code, cryptologic, access control code or rules, auditing logic...?\\E$"}
+{"rule":"ENGLISH_WORD_REPEAT_BEGINNING_RULE","sentence":"^\\QAre you adding confidential/sensitive data or changing data classifications?\\E$"}
+{"rule":"ENGLISH_WORD_REPEAT_BEGINNING_RULE","sentence":"^\\QAre you modifying high-risk code?\\E$"}
