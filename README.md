@@ -670,7 +670,6 @@ semgrep --config "p/expressjs" --config custom_rules.yml /path/to/your/express/a
 }
 </style>
 ### Machine Readable report
-
 Running security tools in CI/CD requires a supported machine-readable output format.
 * xUnit/JUnit
   * Standard XML schema for reporting pass/fail unit test results
