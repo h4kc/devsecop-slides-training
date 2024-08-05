@@ -6,3 +6,6 @@
 {"rule":"ENGLISH_WORD_REPEAT_BEGINNING_RULE","sentence":"^\\QAre you changing security controls: authentication or session management code, cryptologic, access control code or rules, auditing logic...?\\E$"}
 {"rule":"ENGLISH_WORD_REPEAT_BEGINNING_RULE","sentence":"^\\QAre you adding confidential/sensitive data or changing data classifications?\\E$"}
 {"rule":"ENGLISH_WORD_REPEAT_BEGINNING_RULE","sentence":"^\\QAre you modifying high-risk code?\\E$"}
+{"rule":"PHRASE_REPETITION","sentence":"^\\QSemgrep : Custom rules\nCustom rules can be added using the width:900px\\E$"}
+{"rule":"PHRASE_REPETITION","sentence":"^\\QSemgrep : Custom rules\nCustom rules can be added using the Semgrep playground width:900px\\E$"}
+{"rule":"PHRASE_REPETITION","sentence":"^\\QSemgrep : Custom rules\nCustom rules can be added using the Semgrep playground to test the rule syntax : width:900px\\E$"}

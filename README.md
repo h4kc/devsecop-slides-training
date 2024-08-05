@@ -588,6 +588,95 @@ Markdown based templates for starting a pull request can include checklists, inc
 ----
 ### DevOps workflow - Security Controls
 
-![width:250px](./img/precommit.png)
+![width:250px](./img/commit.png)
 
 ----
+### Static Analysis : 
+Provide fast and clear feedback on code commit:
+* Run code scans in parallel with unit testing for speed.
+* Run high-risk checks early in the pipeline to "fail fast."
+* Do incremental scanning, if possible, as deep scanning takes too long for CI/CD, especially on large codebases,
+* Set a max time limit with the dev team, alert them if the limit is breached and fix it.
+* Return results directly to developers using their IDE or backlog list/tool.
+* Run full/long-running scans out-of-band (nightly) or in the scanning factory.
+----
+<style scoped>
+{
+  font-size: 29px
+}
+</style>
+#### Minimize False Positives
+Developers will tune out results if you don't tune out false positives.
+* Carefully review rules to identify which checkers provide high-confidence results.
+* Fail the pipeline if these checks fail.
+* Turn off noisy, low-confidence checks in the pipeline-run them separately and review/qualify them manually. Feed real positive findings back to the development team's backlog.
+* Periodically review and re-tune rules and configurations.
+Track and document tool configurations and decisions on which checkers or rules you disable (for compliance/governance).
+---
+### SAST : Configuration management
+
+| IaC Technology  | Static Code Analysis Tools                                    |
+|-----------------|---------------------------------------------------------------|
+| Ansible         | KICS                                                          |
+| CloudFormation  | cfn_nag, Cfripper, Checkov, KICS                              |
+| Terraform       | Terrascan, Checkov, TFSec, KICS, ShiftLeft                    |
+
+----
+### SAST : Language Support
+| Type              | Java                 | Node.js                   | Python           | PHP            |
+|-------------------|----------------------|---------------------------|------------------|----------------|
+| Code Quality      | SonarQube, PMD       | ESLint                    | Pylint, SonarQube| SonarQube, PHPStan, Psalm, Phan |
+| Security Checker  | Fortify, Checkmarx,   | npm-audit, NSP            | Bandit           | RIPS           |
+| Bug Corrector     | FindBugs             | Flow                         | Pyflakes         | Phan              |
+ ---
+## SAST : Semgrep
+ Semgrep provides a lightweight, multi-language, extensible static analysis solution.
+ - Open-source
+ - Community driven rules
+ - Language support : Go, Java, JavaScript, Python ...
+ - Support automation !!!!!!!
+ ---
+ 
+ ## SAST : Semgrep
+```plaintext
+semgrep --config "p/expressjs" --config custom_rules.yml /path/to/your/express/app
+
+/path/to/your/express/app/index.js
+  5:14  error  jwt-hardcoded-secret  Avoid hardcoding JWT secrets
+  10:5  error  security-audit-rule   Some other security issue
+
+2 issues
+```
+----
+ ## Semgrep : Custom rules
+ Custom rules can be added using the Semgrep playground to test the rule syntax : 
+![width:900px](./img/semgrep.png)
+
+----
+
+### Dependencies : Component Analysis
+
+| Dependency Checker       | Supported Languages                            |
+|--------------------------|------------------------------------------------|
+| OWASP Dependency-Check   | Java, JavaScript, .NET, Python, Ruby, PHP, Node.js |
+| retire.js                | JavaScript, Node.js                            |
+| safety                   | Python                                         |
+| PHP Dependency Checker | PHP                                           |
+
+----
+<style scoped>
+{
+  font-size: 29px
+}
+</style>
+### Machine Readable report
+
+Running security tools in CI/CD requires a supported machine-readable output format.
+* xUnit/JUnit
+  * Standard XML schema for reporting pass/fail unit test results
+* Checkstyle
+  * Standard XML schema for reporting static analysis results
+* SARIF (Static Analysis Results Interchange Format)
+  * JSON based schema primarily used for displaying results in GitHub
+* JSON
+  * Custom schemas are machine-readable, but you have work to do!
