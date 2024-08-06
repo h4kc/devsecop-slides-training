@@ -679,3 +679,259 @@ Running security tools in CI/CD requires a supported machine-readable output for
   * JSON based schema primarily used for displaying results in GitHub
 * JSON
   * Custom schemas are machine-readable, but you have work to do!
+----
+<!-- _class: lead -->
+
+# Containers Security
+
+----
+<style scoped>
+{
+  font-size: 29px
+}
+</style>
+# NIST SP 800-190 
+Containers will force you to use different security tools and practices:
+* Adopt new technologies for writing secure Dockerfiles and scanning images.
+* Understand how to sign and store images securely in a registry.
+* Leverage container-optimized host operating systems (e.g., Google
+COS) to reduce attack surface.
+* Obtain container-specific runtime security appliances that manage dynamic and ephemeral containerized environments. Perimeter-based runtime defenses like IDS/IPS/WAF do not have visibility inside container networks.
+----
+### Container Security life cycle
+Security must shift left and consistent policies are implemented along each step of the container life cycle:
+
+1- Pre-commit
+2- Version Control
+3- CI/CD
+4- Container Registry
+5- Container Orchestrator
+
+----
+<style scoped>
+{
+  font-size: 18px
+}
+</style>
+## Dockerfile Commands
+| Command      | Description                                                                                                                                     
+|--------------|--------------------------------------------------------------------------------------------------------------------------------------------------
+| `FROM`       | Specifies the base image to use for the Docker image.                                                                                            
+| `LABEL`      | Adds metadata to the image, such as a maintainer or version.                                                                                     
+| `RUN`        | Executes a command in a new layer on top of the current image and commits the results.                                                          
+| `CMD`        | Provides the default command to run when the container starts. Can be overridden with `docker run`.                                             
+| `ENTRYPOINT` | Configures a container to run as an executable. Unlike `CMD`, it is not overridden by the `docker run` command.                                  
+| `WORKDIR`    | Sets the working directory for any `RUN`, `CMD`, `ENTRYPOINT`, `COPY`, and `ADD` instructions that follow it.                                   
+| `COPY`       | Copies new files or directories from `<src>` and adds them to the file system of the container at the path `<dest>`.                            
+| `ADD`        | Similar to `COPY` but can also extract local tar archives and download remote files.                                                            
+| `ENV`        | Sets an environment variable.                                                                                                                 
+| `EXPOSE`     | Informs Docker that the container listens on the specified network ports at runtime.                                                            
+| `USER`       | Sets the username or UID to use when running the image and for any `RUN`, `CMD`, and `ENTRYPOINT` instructions that follow it.                 
+| `VOLUME`     | Creates a mount point with the specified path and marks it as holding externally mounted volumes from native host or other containers.          
+| `ARG`        | Defines a variable that users can pass at build-time to the builder with the `docker build` command.                                             
+
+----
+<style scoped>
+{
+  font-size: 29px
+}
+</style>
+## Hunt The Bug
+```dockerfile
+FROM mcr.rnicrosoft.com/dotnet/core/sdk:2.2
+ARG ENVIRONMENT=prod
+ENV ASPNETCORE ENVIRONMENT=$(ENVIRONMENT} 
+ENV CERTIFICATE_PASSPHRASE-mycertpassphrase
+RUN apt-get update && apt-get install -y libss1-dev=1.1*
+COPL cert.conf -/cert.conf
+RUN openssl reg -x509 -nodes -days 3650 -newkey rsa:4096 -keyout app.key
+-out app.ert -config cert.cont -passin pass:$(CERTIFICATE_PASSPHRASE)
+RUN openssl pkcsl2 -export -out app.pfx -inkey app.key -in app.crt
+-passout pass: $(CERTIFICATE_PASSPHRASE]
+USER root
+WORKDIR /WWW
+ENTRYPOINT ["dotnet", "Sans. CreditUnion API.dil"1]
+```
+----
+## Container Security : Pre-commit
+
+Container security starts upfront the pre-commit phase with policies:
+- SAST for Dockerfile misconfiguration
+- Locking down the base image supply chain
+- Installing approved binaries inside a base image
+- Using multi-stage builds to create minimalistic images
+- Passing build time secrets to image build commands
+
+----
+<style scoped>
+{
+  font-size: 29px
+}
+</style>
+### SAST for Dockerfiles
+
+| Tool            | Description                                                                                       
+|-----------------|---------------------------------------------------------------------------------------------------
+| Hadolint        | A linter for Dockerfiles that helps you build best practice Docker images by providing tips.     
+| KICS            | An open-source tool that finds security vulnerabilities, compliance issues, and misconfigurations in IaC.                                               |
+| Dockerfilelint  | A linter for Dockerfiles to ensure adherence to best practices.                                                                                  |
+| dockerfile-lint | Another linter for Dockerfiles focusing on best practices and potential issues.                                                                      |
+----
+
+# Hadolint
+Hadolint parses Dockerfiles into Abstract Syntax Trees (AST) and runs rules:
+* Supports an approved list of trusted registries
+* Suppress false positives via inline comments or a configuration file
+* Export formats include checkstyle, sarif, and json
+```plaintext
+$ hadolint --trusted-regestry gcr.io ./Dockerfile
+Dockerfile:4 DL3008 warning: Pin versions in apt-get install. Instead of `apt-get install -y python3` use `apt-get install -y python3=<version>`
+Dockerfile:7 DL3018 info: Pin versions in pip. Instead of `pip install -r requirements.txt` use `pip install -r requirements.txt && pip freeze > requirements.txt`
+Dockerfile:9 DL4000 warning: MAINTAINER is deprecated
+Dockerfile:10 DL3020 error: Use COPY instead of ADD for files and folders
+Dockerfile:14 DL3025 info: Use arguments JSON notation for CMD and ENTRYPOINT commands
+```
+----
+### Supply chain hardening
+MITRE ATT&CK Containers T1525: Implant Internal Image
+* Images from public registries may contain vulnerabilities or malware, easy and common attack vector
+* Mitigations:
+  * Building inventory of approved base images
+  * Downloading base images from trusted suppliers
+  * Scanning base images for vulnerabilities
+  * Creating a private container registry
+  * Signing custom images and storing in a private registry
+
+----
+# Container image trusted suppliers
+- Docker hub (Verified Publisher)
+- Platform One Iron Bank
+- MCR
+- ECR Gallery 
+----
+<style scoped>
+{
+  font-size: 29px
+}
+</style>
+# Conftest - Trusted supplier policy
+The big difference between Contest and a static analysis engine like hadolunt is the ability to wnte custom tests using the Open Policy Agent (OPA - pronounced oh-pa) Rego query language. The example above shows how to create a trusted images Rego policy.
+```
+package main
+trusted_suppliers = ["ubuntu:20.04", "alpine:3.13", "node:14-alpine"]
+deny[msg] {
+    input[i].Cmd == "from"
+    image := input[i].Value
+    not image in trusted_suppliers
+    msg = sprintf("The image '%s' is not from a trusted supplier.", [image])
+}
+```
+----
+## Conftest - Trusted supplier policy
+Pre-commit hooks can validate conftest policies for trusted base images and package install commands:
+```plaintext
+$ conftest test --namespace image, install Dockerfile
+```
+* Failing policies are shown in the console output
+* Optional output formats for table, junit and json
+```plaintext
+FAIL - Dockerfile - image - [untrusted_supplier] Untrusted supplier identified: mer.rnicrosoft.com/dotnet/core/sdk:2.2
+FAIL - Dockerfile - install - [install_command] Disallowed command found: ["apt-get update &s apt-get install -y libss1-dev=1.1**]
+2 tests, O passed, O warnings, 2 failures, O exceptions
+```
+----
+<style scoped>
+{
+  font-size: 29px
+}
+</style>
+### Minimal image with multi-stage Builds
+Multi-stage builds use multiple FROM statements to differentiate
+"development" from "runtime" base images.
+* Stage 1 uses a base image with an SDK to build the application
+(1.5GB)
+* Stage 2 copies the binaries into an Alpine runtime image (120MB)
+```Docker
+FROM mcr.microsoft.com/dotnet/nightly/sdk:6.0 AS build
+COPY ./Web/  ./Web/
+RUN dotnet publish "./Web/Website.csproj" -c Release -o /app/bin
+FROM mcr.microsoft.com/dotnet/nightly/runtine:6.0.2-alpine3.15
+WORKDIR /www
+COPY --fron-build /app/bin ./ ENTRYPOINI ["dotnet", "Website.dll"]
+```
+----
+## Configure Build Time Secrets
+
+Docker BuildKit supports build secrets (--secrets) to help developers avoid hard-coding secrets in Dockerfiles and environment variables:
+
+```docker
+COPY cert.conf /cert.conf
+RUN --mount-type-secret, id-passphrase openssl req -x509 -nodes -days 3650 - newkey rsa: 4096 -keyout app.key -out app.ert -config cert.conf
+-passin file: ///run/secrets/passphrase
+RUN --mount-type-secret, id-passphrase openssl pkes12 -export -out app.pfx - inkey app.key -in app.ert -passout file: ///run/secrets/passphrase
+```
+Running the docker build command, setting the tag, and configuring a build time secret:
+```sh
+echo $ (CERTIFICATE_PASSPHRASE) > passphrase
+docker build --tag dntools/base: insecure --secret id-passphrase, sro-passphrase --file Dockertile
+```
+----
+## Docker scan
+- Scan images and Dockerfiles with docker scan CLI (Snyk) before committing Dockerfile
+- Requires Docker Hub account to run scan locally 
+```sh
+$ docker scan --file./Dockerfile
+X Critical severity vuinerability found in Curl/1ibcur13
+Description: Double Free
+Into: https: //snyk.10/vuln/SNYK-DEBIAN9-CURI-466508
+```
+----
+## Container Security - CI/CD
+Merge requests triggering CI/CD workflows responsible for building and releasing container images must certify the image:
+* Enforce pre-commit controls and validate results.
+* Build a release candidate image and perform in-depth scanning for vulnerabilities.
+* Sign the release candidate image, tagging for production, and pushing to the container registry.
+----
+# Open Source Container Scanning Tools
+- Anchore
+- Docker Bench
+- OpenSCAP plugin
+- Trivy
+ ----
+ # Trivy Image Scanning
+  - Scannning the container image in CI/CD
+  - Output format : table, json, sarif ...
+  ----
+  # Cosign Container Image Scanning 
+  - Cosign support artifact signings
+  - Signing key storage in AWS, Azure, GCP, VAULT, and on premise
+
+  ```bash
+$ docker push 123456789012.dkr.ecr.us-west-2.amazonaws.com/api-image:1.4
+$ cosign sign --key awskms:///alias/dm/cosign 123456789012.dr.ecr.us-west-2.amazonaws.com/api-image:1.4
+
+1.4: digest: sha256:b30e9b9aße0e29d1852c07825dcca52d51ad58920849851747c64a5379bb1a95 size: 1793
+Pushing signature to: 123456789012.dkr.ecr.us-west-2.amazonaws.com/api-image
+  ```
+  ----
+### Container Security -  Registry
+Private container registries storing production images are the bridge between development and operations:
+* They store image signature metadata for validation.
+* They enforce strict access control on registry read and write operations.
+* They are continuously scanning registries for new vulnerabilities and sending notifications.
+
+--- 
+# AWS ECR - Best practices
+AWS Elastic Container Registry (ECR) security best practices:
+* Isolate container registries in a dedicated DevOps account
+* Restrict access using resource-based and identity-based IAM policies for cross-account access
+* Protect production images from corruption or deletion with immutable tagging
+* Enable basic container image scanning
+----
+## Container Security - Runtime
+
+Container runtimes and orchestrators are responsible for pulling registry images and managing the workloads:
+* Review security hardening guides for the selected runtime
+* Admission controllers validate image signatures and security
+- requirements
+* Runtime security appliances inspect network traffic, monitor lateral communications, quarantine containers, and run vulnerability scans
