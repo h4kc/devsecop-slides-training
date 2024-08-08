@@ -9,3 +9,4 @@
 {"rule":"PHRASE_REPETITION","sentence":"^\\QSemgrep : Custom rules\nCustom rules can be added using the width:900px\\E$"}
 {"rule":"PHRASE_REPETITION","sentence":"^\\QSemgrep : Custom rules\nCustom rules can be added using the Semgrep playground width:900px\\E$"}
 {"rule":"PHRASE_REPETITION","sentence":"^\\QSemgrep : Custom rules\nCustom rules can be added using the Semgrep playground to test the rule syntax : width:900px\\E$"}
+{"rule":"MORFOLOGIK_RULE_EN_US","sentence":"^\\QIaC Pipeline\nWith the Infrastructure as Code (IaC) templates written, all configuration changes should go through the IaC CI/CD pipeline.\\E$"}

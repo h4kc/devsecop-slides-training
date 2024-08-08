@@ -914,7 +914,7 @@ $ cosign sign --key awskms:///alias/dm/cosign 123456789012.dr.ecr.us-west-2.amaz
 Pushing signature to: 123456789012.dkr.ecr.us-west-2.amazonaws.com/api-image
   ```
   ----
-### Container Security -  Registry
+### Container Security -  Registryg
 Private container registries storing production images are the bridge between development and operations:
 * They store image signature metadata for validation.
 * They enforce strict access control on registry read and write operations.
@@ -935,3 +935,287 @@ Container runtimes and orchestrators are responsible for pulling registry images
 * Admission controllers validate image signatures and security
 - requirements
 * Runtime security appliances inspect network traffic, monitor lateral communications, quarantine containers, and run vulnerability scans
+
+---
+
+# kubernetes Security/Insecurity
+ Insecure Workload Configurations
+ Supply Chain Vulnerabilities
+ Overly Permissive RBAC
+ Policy Enforcement
+ Inadequate Logging
+ Broken Authentication
+ Network Segmentation
+Vulnerable Components
+
+----
+# Istio
+Istio is an open source service mesh that layers transparently onto existing distributed applications. Istio’s powerful features provide a uniform and more efficient way to secure, connect, and monitor services. Istio is the path to load balancing, service-to-service authentication, and monitoring – with few or no service code changes
+
+----
+ # Istio gives you
+Secure service-to-service communication in a cluster with mutual TLS encryption, strong identity-based authentication and authorization
+Automatic load balancing for HTTP, gRPC, WebSocket, and TCP traffic
+Fine-grained control of traffic behavior with rich routing rules, retries, failovers, and fault injection
+A pluggable policy layer and configuration API supporting access controls, rate limits and quotas
+Automatic metrics, logs, and traces for all traffic within a cluster, including cluster ingress and egress
+
+----
+## Effects of crime
+1- Workload disruptions
+2- Resource Consumption issues
+3- Traffic issues : latency
+4- Security issues
+
+----
+
+# Ambiant Mesh : 2022
+
+level 4 communication : TCP routing
+Security : mTLS tunneling, ZTunnel 
+Observability : TCP metrics and logging
+
+Resource efficiency
+Optimal scaling of L7 proxies
+Improved performance
+Increased Security 
+
+----
+<!-- _class: lead -->
+
+#### eBPF
+## Cilium eBPF based service Mesh
+
+----
+ ## Cilium Service Mesh
+
+![width:800px](./img/cilium.png)
+
+----
+ ## Cilium Service Mesh
+
+![width:900px](./img/ciliumhubble.png)
+
+----
+ ## Cilium Service Mesh
+
+![width:900px](./img/ciliumtetragon.png)
+
+----
+<!-- _class: lead -->
+
+#### Infra Structure As Code (IaC)
+## Security and best practices
+
+----
+# IaC Pipeline
+With the Infrastructure as Code (IaC) templates written, all configuration changes should go through the IaC CI/CD pipeline. This requires the engineer to check code into version control using a feature branch to create a pull request that will then be merged back into the main branch. Once this occurs your Infrastructure as Code pipeline is kicked off.
+- Develop Environment 
+- Stage Environment
+- Production Environment 
+----
+<style scoped>
+{
+  font-size: 29px
+}
+</style>
+# IaC Security 
+Infrastructure as Code (IaC) deployments introduce new security concerns:
+* Templates provide a blueprint of the entire cloud environment.
+* Secrets are everywhere.
+  * Service account keys, SSH keys, API keys, Terraform state file
+* The Least privilege is hard.
+  * Service accounts deploying templates require elevated permissions
+* There are more supply chain attacks.
+  * Terraform modules and nested CloudFormation templates
+* Code analysis (SAST) requires a different toolchain.
+----
+# IaC Security 
+- Understand The Configuration (RRA)
+- Participate in peer reviews
+- Integrate code analysis tools
+- Set up security rules
+---
+# AWS EC2
+```cloudformation
+Resources:
+  MyEC2Instance:
+    Type: 'AWS::EC2::Instance'
+    Properties:
+      InstanceType: t2.micro
+      SecurityGroups:
+        - !Ref MySecurityGroup
+      ImageId: ami-0c55b159cbfafe1f0 
+```
+---
+# AWS EC2
+```cloudformation
+  MySecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: 'Allow HTTP and HTTPS traffic'
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+```
+---
+IaC Security Scanning Tools
+- Terrascan
+- Semgrep
+- Kicks
+- Easy_infra
+- checkov
+- cfn_nag
+
+---
+<style scoped>
+{
+  font-size: 22px
+}
+</style>
+# checkov
+Checkov is a Python command-line package: 
+- Support Terraform, CloudFormation,K8s, Dockerfile.
+- Thousands of security policies across AWS, Azure and GCP.
+
+| Option     | Description                                           | Usage Example                                        |
+|------------|-------------------------------------------------------|------------------------------------------------------|
+| `-d`       | Directory to scan for infrastructure as code files    | `checkov -d /path/to/iac`                            |
+| `-f`       | Specific file to scan                                 | `checkov -f /path/to/iac/file.yaml`                  |
+| `-o`       | Output format (can be `cli`, `json`, `junitxml`, etc.)| `checkov -o json -d /path/to/iac`                    |
+| `-c`       | Path to Checkov configuration file                    | `checkov -c /path/to/checkov/config.yaml`            |
+| `--framework` | Specify the framework to scan (e.g., `terraform`, `cloudformation`, `kubernetes`, etc.) | `checkov --framework terraform -d /path/to/iac`     |
+---
+## Checkov running the scan 
+Running Checkov on the templates' directory
+```sh
+checkov -directory ./templates --framewok terraform --output json > checkov.json
+```
+```json
+{
+  "summary": {
+    "passed": 2,
+    "failed": 2,
+  },
+  "results": [
+    {
+      "check_id": "BC_AZR_NETWORKING_3",
+      "check_name": "Ensure that Network Security Group inbound rule does not allow ALL ports from ALL traffic",
+      "check_result": {
+        "result": "FAILED"
+      },
+      "resource": "azurerm_network_security_rule.example"
+
+```
+---
+# checkov False positives
+
+Suppressing the CKV2-AZURE-10 false positive using the checkov:skip comment:
+```terraform
+ressource "azureem_virtual_machine" "bastion_vm"{
+  #checkov:skip=CKV2_AZURE_10: Antivirus and patching is used with an EDR
+}
+```
+---
+# CloudFormation Nag
+cfn_nag is a CloudFormation template checker:
+- Rule support includes IAM, security groups, logging, encryption ...
+- Accept -i for the input 
+- Accept -o for the output that could be text or json
+---
+## cfn_nag , False Positives
+Suppressing the W2 and W9 cfn_nag false positives using the metadata attribute:
+```
+SecurityGroupPublic:
+  Type: AWS::EC2:: SecurityGroup
+  Metadata:
+    cfn_nag:
+      rules_to_suppress:
+        - id: W9 reason: "This policy has been approved by security. (REF - 06152018]
+        - id: W2 reason: "This policy has been  approved by security. (REF - 06152018]'
+Properties:
+```
+---
+<style scoped>
+{
+  font-size: 25px
+}
+</style>
+## Configuration Management as Code
+ Infrastructure as Code is a new way of working for many System administrators. It is less about system administration and more about software engineering:
+* Establishing and following coding standards and patterns and defining and enforcing security and compliance policies in code.
+* Organizing code into modules and creating reusable functions and templates.
+* Implementing static analysis/linting tools to catch common mistakes and enforce good coding practices/style.
+* Checking all code/configuration into version control.
+* Establishing team disciplines of code reviews and refactoring.
+* Writing automated tests to prove that the changes are implemented correctly-including Test-Driven
+Development (TDD) where tests are written before the code is changed (red/green).
+---
+# Configuration Management Tooling
+
+ ## Declarative 
+" What ?", Desired State, easy verification, Puppet, CFEngine
+## Procedural
+"How ?", Detailed steps, Easy to use and understand, End state not captured, Ansible, Chef
+
+----
+<style scoped>
+{
+  font-size: 29px
+}
+</style>
+# Configuration Management as Code Hardening
+Follow basic good practices in setting up configurations and take advantage of hardening templates/recipes and examples.
+* dev-sec.io open-source hardening framework
+* CIS benchmarks
+* DoD STIG templates
+* SIMP Project from NSA (https://www.simp-project.com/)
+
+Always carefully review open-source templates/modules before use.
+
+----
+
+## Configuration Management - Test System 
+
+- Phoenix test Servers
+- Vagrant can be a rapid and simple tool to spin temporary disposable VM sandbox for testing config changes
+- After testing, tear down and clean up the test runtime.
+- Reduce the ATTACK surface
+
+----
+## Building Gold Images with Packer
+Packer is an open-source tool for creating machine images on different platforms with a common configuration:
+* Source images from Amazon EC2, Azure Virtual Machines, Google Compute Engine, Docker, VMWare, Virtual Box
+* Apply Ansible, Puppet, or Chef configurations
+* Publish a custom virtual machine image to the target platform
+* Command-line driven and built for CI/CD
+
+----
+### Ansible security
+
+Automated testing tools for Ansible:
+1. Run ansible-lint before committing code to source repository.
+2. Run ansible-test for unit and integration tests suites.
+3. Run Checkmarx's KICS scanner to check for dangerous
+Ansible code.
+4. Run InSpec stories against test VM to validate final configuration
+
+----
+### InSpec : Automationg Compliance Checking
+Open-source language to write compliance checks that auditors can understand.
+* Works like Serverspec: test the actual configuration against expected results + report deviations
+* Tests include severity/risk level and description metadata to match against compliance checklist items or regulatory policies
+* Check resources on Linux, Unix,Windows, AWS, Azure, GCP, VMware InSpec tests become your compliance requirements.
+----
+<!-- _class: lead -->
+
+#### Make your own harden images
+## Jenkins + Packer + Ansible + Inspec
+
+----
