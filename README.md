@@ -14,7 +14,6 @@ header: '--DevSecOps and Cloud security automation--'
 
 ### "Deliver resilient software capability at the speed of relevance"
 ---
-![bg left:25%](./img/me.jpeg)
 
 ### Application Security Analyst and DevSecOps expert
 - Web and mobile Developer
